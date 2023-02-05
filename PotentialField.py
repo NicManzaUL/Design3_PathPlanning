@@ -3,11 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Parameters
-KP = 3  # attractive potential gain
+GRID_SIZE =1.0 # potential grid size [m]
+KP = 2.5/GRID_SIZE # attractive potential gain
 ETA = 50.0  # repulsive potential gain
 AREA_WIDTH = 0.0  # potential area width [m]
 # the number of previous positions used to check oscillations
 OSCILLATIONS_DETECTION_LENGTH = 3
+CURRENT_COORD = [int, int]
 
 show_animation = True
 
@@ -69,7 +71,7 @@ def get_motion_model():
     northwest=[-1, 1]
     southeast=[1, -1]
     northeast= [1, 1]
-    motion = [east, north, west, south, southwest, northwest, southeast, northeast]
+    motion = [east, north, west, south]##, southwest, northwest, southeast, northeast]
 
     return motion
 
@@ -97,9 +99,9 @@ def potential_field_planning(start, goal, obstacles, resolution,robot_radius, to
     goal_y = goal[1]
 
     obstacles_x = []
-    [obstacles_x.append(ox[0]) for ox in obstacles]
+    [obstacles_x.append(scale(ox[0])) for ox in obstacles]
     obstacles_y = []
-    [obstacles_y.append(oy[1]) for oy in obstacles]
+    [obstacles_y.append(scale(oy[1])) for oy in obstacles]
 
     # calc potential field
     potential_map, minx, miny = calc_potential_field(goal_x, goal_y, obstacles_x, obstacles_y, resolution,robot_radius, start_x, start_y, tolerance)
@@ -153,7 +155,7 @@ def potential_field_planning(start, goal, obstacles, resolution,robot_radius, to
 
         if (oscillations_detection(previous_ids, ix, iy)):
             print("Oscillation detected at ({},{})!".format(ix, iy))
-            
+            setCurrentCoord(ix, iy)
             break
 
         if show_animation:
@@ -168,18 +170,33 @@ def draw_heatmap(data):
     data = np.array(data).T
     plt.pcolor(data, vmax=100.0, cmap=plt.cm.Blues)
 
+def setCurrentCoord(x, y):
+    CURRENT_COORD[0] = x
+    CURRENT_COORD[1] = y
+
+def  getCurrentCoord():
+    return (getCurrentCoord_X, getCurrentCoord_Y)
+
+def getCurrentCoord_X():
+    return CURRENT_COORD[0]
+    
+def getCurrentCoord_Y():
+    return CURRENT_COORD[1]
+
+def scale(coord):
+    return coord#*GRID_SIZE
+
 def main():
     print("potential_field_planning start")
 
-    grid_size = 0.75  # potential grid size [m]
     robot_radius = 5.0  # robot radius [m]
     dimension = (25, 50)
 
-    start = (10, 10)
-    goal = (30, 30)
+    start = (scale(10), scale(10))
+    goal = (scale(30), scale(30))
     
      # [(x coord, y coord, size)]
-    obstacles = [(0, 0),(dimension[0], 0), (0, dimension[1]), (dimension[0], dimension[1]), (15.0, 25.0), (5.0,15.0), (20.0, 26.0), (25.0, 25.0), (24, 15), (40, 40)]
+    obstacles = [(0, 0),(dimension[0], 0), (0, dimension[1]), (dimension[0], dimension[1]), (15.0, 25.0), (5.0,15.0), (20.0, 27.0), (25.0, 25.0), (24, 15), (40, 40), (50, 29), (38, 23)]
 
   
     if show_animation:
@@ -188,18 +205,39 @@ def main():
 
     # path generation
     _, _ = potential_field_planning(
-        start, goal, obstacles, grid_size, robot_radius, 2.5)
+        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
+
+    goal = (goal[0], start[1])
+
+    _, _ = potential_field_planning(
+        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
 
     start = goal
-    goal = (10, 10)
-
+    goal = (scale(30), scale(30))
 
     _, _ = potential_field_planning(
-        start, goal, obstacles, grid_size, robot_radius, 2.5)
+        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
+
+    start = goal
+    goal = (scale(10), scale(10))
+    _, _ = potential_field_planning(
+        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
+
+    goal= (scale(20), scale(36))
+
+    _, _ = potential_field_planning(
+        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
     
-
+    start = goal
+    goal = (scale(10), scale(10))
     _, _ = potential_field_planning(
-        start, goal, obstacles, grid_size, robot_radius, 3)
+        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
+
+    start = goal
+    goal = (scale(45), scale(29))
+    _, _ = potential_field_planning(
+        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)  
+     
 
     if show_animation:
         plt.show()
