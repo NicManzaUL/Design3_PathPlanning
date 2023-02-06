@@ -1,20 +1,25 @@
 from collections import deque
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 
 # Parameters
-GRID_SIZE =1.0 # potential grid size [m]
-KP = 2.5/GRID_SIZE # attractive potential gain
-ETA = 50.0  # repulsive potential gain
+GRID_SIZE =0.5 # potential grid size [m]
+DIMENSION = (25, 50)
+KP = 2.5 # attractive potential gain
+ETA = 100 # repulsive potential gain
 AREA_WIDTH = 0.0  # potential area width [m]
 # the number of previous positions used to check oscillations
 OSCILLATIONS_DETECTION_LENGTH = 3
-CURRENT_COORD = [int, int]
+ROBOT_RADIUS = 2.5  # robot radius [m]
+LAST_POSITION = (int, int)
+
+
 
 show_animation = True
 
 
-def calc_potential_field(goal_x, goal_y, obstacles_x, obstacles_y, resolution,robot_radius, start_x, start_y, tolerance):
+def calc_potential_field(goal_x, goal_y, obstacles_x, obstacles_y, resolution,ROBOT_RADIUS, start_x, start_y, tolerance):
     minx = min(min(obstacles_x), start_x, goal_x) - AREA_WIDTH / 2.0
     miny = min(min(obstacles_y), start_y, goal_y) - AREA_WIDTH / 2.0
     maxx = max(max(obstacles_x), start_x, goal_x) + AREA_WIDTH / 2.0
@@ -31,7 +36,7 @@ def calc_potential_field(goal_x, goal_y, obstacles_x, obstacles_y, resolution,ro
         for iy in range(yw):
             y = iy * resolution + miny
             ug = calc_attractive_potential(x, y, goal_x, goal_y)
-            uo = calc_repulsive_potential(x, y, obstacles_x, obstacles_y,robot_radius, tolerance)
+            uo = calc_repulsive_potential(x, y, obstacles_x, obstacles_y,ROBOT_RADIUS, tolerance)
             uf = ug + uo
             potential_map[ix][iy] = uf
 
@@ -40,7 +45,7 @@ def calc_potential_field(goal_x, goal_y, obstacles_x, obstacles_y, resolution,ro
 def calc_attractive_potential(x, y, goal_x, goal_y):
     return 0.5 * KP * np.hypot(x - goal_x, y - goal_y)
 
-def calc_repulsive_potential(x, y, obstacles_x, obstacles_y,robot_radius, tolerance):
+def calc_repulsive_potential(x, y, obstacles_x, obstacles_y,ROBOT_RADIUS, tolerance):
     # search nearest obstacle
     minid = -1
     dmin = float("inf")
@@ -53,11 +58,11 @@ def calc_repulsive_potential(x, y, obstacles_x, obstacles_y,robot_radius, tolera
     # calc repulsive potential
     dq = np.hypot(x - obstacles_x[minid], y - obstacles_y[minid])/tolerance
 
-    if dq <=robot_radius:
+    if dq <=ROBOT_RADIUS:
         if dq <= 0.1:
             dq = 0.1
 
-        return 0.5 * ETA * (1.0 / dq - 1.0 /robot_radius) ** 2
+        return 0.5 * ETA * (1.0 / dq - 1.0 /ROBOT_RADIUS) ** 2
     else:
         return 0.0
 
@@ -71,7 +76,7 @@ def get_motion_model():
     northwest=[-1, 1]
     southeast=[1, -1]
     northeast= [1, 1]
-    motion = [east, north, west, south]##, southwest, northwest, southeast, northeast]
+    motion = [east, north, west, south, southwest, northwest, southeast, northeast]
 
     return motion
 
@@ -90,7 +95,7 @@ def oscillations_detection(previous_ids, ix, iy):
             previous_ids_set.add(index)
     return False
 
-def potential_field_planning(start, goal, obstacles, resolution,robot_radius, tolerance):
+def potential_field_planning(start, goal, obstacles, resolution,ROBOT_RADIUS, tolerance):
 
     start_x = start[0]
     start_y = start[1]
@@ -104,7 +109,7 @@ def potential_field_planning(start, goal, obstacles, resolution,robot_radius, to
     [obstacles_y.append(scale(oy[1])) for oy in obstacles]
 
     # calc potential field
-    potential_map, minx, miny = calc_potential_field(goal_x, goal_y, obstacles_x, obstacles_y, resolution,robot_radius, start_x, start_y, tolerance)
+    potential_map, minx, miny = calc_potential_field(goal_x, goal_y, obstacles_x, obstacles_y, resolution,ROBOT_RADIUS, start_x, start_y, tolerance)
 
     # search path
     d = np.hypot(start_x - goal_x, start_y - goal_y)
@@ -138,7 +143,8 @@ def potential_field_planning(start, goal, obstacles, resolution,robot_radius, to
               
             else:
                 p = potential_map[inx][iny]
-            if minp > p:
+
+            if p < minp:
                 minp = p
                 minix = inx
                 miniy = iny
@@ -155,15 +161,14 @@ def potential_field_planning(start, goal, obstacles, resolution,robot_radius, to
 
         if (oscillations_detection(previous_ids, ix, iy)):
             print("Oscillation detected at ({},{})!".format(ix, iy))
-            setCurrentCoord(ix, iy)
             break
 
         if show_animation:
-            plt.plot(ix, iy, ".g")
+            plt.plot(ix, iy, ".r")
             plt.pause(0.01)
 
-    print("Goal!!")
-
+    print("Done")
+    setCurrentCoord(rx[-1], ry[-1])
     return rx, ry
 
 def draw_heatmap(data):
@@ -171,74 +176,109 @@ def draw_heatmap(data):
     plt.pcolor(data, vmax=100.0, cmap=plt.cm.Blues)
 
 def setCurrentCoord(x, y):
-    CURRENT_COORD[0] = x
-    CURRENT_COORD[1] = y
+    LAST_POSITION=(x, y)
 
-def  getCurrentCoord():
+
+def getCurrentCoord():
     return (getCurrentCoord_X, getCurrentCoord_Y)
 
 def getCurrentCoord_X():
-    return CURRENT_COORD[0]
+    return LAST_POSITION[0]
     
 def getCurrentCoord_Y():
-    return CURRENT_COORD[1]
+    return LAST_POSITION[1]
 
 def scale(coord):
     return coord#*GRID_SIZE
 
+def getObstacles():
+    f = open('mapData.json')
+    listObstacles = json.load(f)
+    obstacles = [(0, 0),(DIMENSION[0], 0), (0, DIMENSION[1]), (DIMENSION[0], DIMENSION[1]),(DIMENSION[0]*0.5, 0), (0, DIMENSION[1]*0.5), (DIMENSION[0]*0.5, DIMENSION[1]*0.5)]
+    for obst in listObstacles['obstacles']:
+        obstacles.append((obst['x'], obst['y']))
+    return obstacles
+
+def getLocation(type, spec):
+    f = open('mapData.json')
+    listObject = json.load(f)
+    x = listObject[type][spec]['x']
+    y = listObject[type][spec]['y']
+    print("({},{})!".format(x, y))
+    return (float(x), float(y))
+
+def moveTo(start, goal):
+
+    list, list = potential_field_planning(
+        start, goal, getObstacles(), GRID_SIZE, ROBOT_RADIUS, KP)
+
+
+def moveToCube(color, start):
+
+    list, list = potential_field_planning(
+        start, (getLocation("cube", color)), getObstacles(), GRID_SIZE, ROBOT_RADIUS, KP)
+
+def moveToGrid(name, start):
+    
+    list, list = potential_field_planning(
+        start, getLocation("grid", name), getObstacles(), GRID_SIZE, ROBOT_RADIUS, KP)
+
+
 def main():
     print("potential_field_planning start")
 
-    robot_radius = 5.0  # robot radius [m]
-    dimension = (25, 50)
 
-    start = (scale(10), scale(10))
-    goal = (scale(30), scale(30))
+
+    start = (scale(2), scale(5))
+    #goal = (scale(30), scale(30))
     
+    f = open('mapData.json')
+    listObstacles = json.load(f)
      # [(x coord, y coord, size)]
-    obstacles = [(0, 0),(dimension[0], 0), (0, dimension[1]), (dimension[0], dimension[1]), (15.0, 25.0), (5.0,15.0), (20.0, 27.0), (25.0, 25.0), (24, 15), (40, 40), (50, 29), (38, 23)]
-
-  
+   
     if show_animation:
         plt.grid(True)
         plt.axis("equal")
 
     # path generation
-    list, list = potential_field_planning(
-        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
+    moveToCube('red', start)
 
-    goal = (goal[0], start[1])
+    start = getLocation('cube', 'red')
+    moveToGrid('BL', start)
 
-    list, list = potential_field_planning(
-        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
+    start = getLocation('grid', 'BL')
+    moveToCube('green', start)
 
-    start = goal
-    goal = (scale(30), scale(30))
+    start = getLocation('cube', 'green')
+    moveToGrid('BM', start)
 
-    list, list = potential_field_planning(
-        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
+    start = getLocation('grid', 'BM')
+    moveToCube('blue', start)
 
-    start = goal
-    goal = (scale(10), scale(10))
-    list, list = potential_field_planning(
-        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
+    start = getLocation('cube', 'blue')
+    moveToGrid('BR', start)
 
-    goal= (scale(20), scale(36))
+    start = getLocation('grid', 'BR')
+    moveToCube('yellow', start)
 
-    list, list = potential_field_planning(
-        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
+    start = getLocation('cube', 'yellow')
+    moveToGrid('ML', start)
+
+    start = getLocation('grid', 'ML')
+    moveToCube('black', start)
+
+    start = getLocation('cube', 'black')
+    moveToGrid('MM', start)
+
+    start = getLocation('grid', 'MM')
+    moveToCube('white', start)
+
+    start = getLocation('cube', 'white')
+    moveToGrid('ML', start)
+
     
-    start = goal
-    goal = (scale(10), scale(10))
-    list, list = potential_field_planning(
-        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
 
-    start = goal
-    goal = (scale(45), scale(29))
-    list, list = potential_field_planning(
-        start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)  
-     
-
+    
     if show_animation:
         plt.show()
 
