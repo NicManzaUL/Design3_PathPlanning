@@ -204,38 +204,38 @@ def main():
         plt.axis("equal")
 
     # path generation
-    _, _ = potential_field_planning(
+    list, list = potential_field_planning(
         start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
 
     goal = (goal[0], start[1])
 
-    _, _ = potential_field_planning(
+    list, list = potential_field_planning(
         start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
 
     start = goal
     goal = (scale(30), scale(30))
 
-    _, _ = potential_field_planning(
+    list, list = potential_field_planning(
         start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
 
     start = goal
     goal = (scale(10), scale(10))
-    _, _ = potential_field_planning(
+    list, list = potential_field_planning(
         start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
 
     goal= (scale(20), scale(36))
 
-    _, _ = potential_field_planning(
+    list, list = potential_field_planning(
         start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
     
     start = goal
     goal = (scale(10), scale(10))
-    _, _ = potential_field_planning(
+    list, list = potential_field_planning(
         start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)
 
     start = goal
     goal = (scale(45), scale(29))
-    _, _ = potential_field_planning(
+    list, list = potential_field_planning(
         start, goal, obstacles, GRID_SIZE, robot_radius, 2.5)  
      
 
