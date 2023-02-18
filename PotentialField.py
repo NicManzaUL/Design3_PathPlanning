@@ -2,15 +2,11 @@ from collections import deque
 import numpy as np
 import matplotlib.pyplot as plt
 import json
+from NavUtil import NavParam
 
 # Parameters
-GRID_SIZE =0.5 # potential grid size [m]
-DIMENSION = (25, 50)
-KP = 2.5 # attractive potential gain
-ETA = 100 # repulsive potential gain
-AREA_WIDTH = 0.0  # potential area width [m]
-# the number of previous positions used to check oscillations
-OSCILLATIONS_DETECTION_LENGTH = 3
+navParam = NavParam()
+
 ROBOT_RADIUS = 2.5  # robot radius [m]
 LAST_POSITION = (int, int)
 
@@ -18,12 +14,12 @@ LAST_POSITION = (int, int)
 
 show_animation = True
 
-
+ 
 def calc_potential_field(goal_x, goal_y, obstacles_x, obstacles_y, resolution,ROBOT_RADIUS, start_x, start_y, tolerance):
-    minx = min(min(obstacles_x), start_x, goal_x) - AREA_WIDTH / 2.0
-    miny = min(min(obstacles_y), start_y, goal_y) - AREA_WIDTH / 2.0
-    maxx = max(max(obstacles_x), start_x, goal_x) + AREA_WIDTH / 2.0
-    maxy = max(max(obstacles_y), start_y, goal_y) + AREA_WIDTH / 2.0
+    minx = min(min(obstacles_x), start_x, goal_x) - navParam.getAREA_WIDTH() / 2.0
+    miny = min(min(obstacles_y), start_y, goal_y) - navParam.getAREA_WIDTH() / 2.0
+    maxx = max(max(obstacles_x), start_x, goal_x) + navParam.getAREA_WIDTH() / 2.0
+    maxy = max(max(obstacles_y), start_y, goal_y) + navParam.getAREA_WIDTH() / 2.0
     xw = int(round((maxx - minx) / resolution))
     yw = int(round((maxy - miny) / resolution))
 
@@ -43,7 +39,7 @@ def calc_potential_field(goal_x, goal_y, obstacles_x, obstacles_y, resolution,RO
     return potential_map, minx, miny
 
 def calc_attractive_potential(x, y, goal_x, goal_y):
-    return 0.5 * KP * np.hypot(x - goal_x, y - goal_y)
+    return 0.5 * navParam.getATRC_POTL_GAIN() * np.hypot(x - goal_x, y - goal_y)
 
 def calc_repulsive_potential(x, y, obstacles_x, obstacles_y,ROBOT_RADIUS, tolerance):
     # search nearest obstacle
@@ -62,7 +58,7 @@ def calc_repulsive_potential(x, y, obstacles_x, obstacles_y,ROBOT_RADIUS, tolera
         if dq <= 0.1:
             dq = 0.1
 
-        return 0.5 * ETA * (1.0 / dq - 1.0 /ROBOT_RADIUS) ** 2
+        return 0.5 * navParam.getRPLV_POTL_GAIN() * (1.0 / dq - 1.0 /ROBOT_RADIUS) ** 2
     else:
         return 0.0
 
@@ -76,14 +72,14 @@ def get_motion_model():
     northwest=[-1, 1]
     southeast=[1, -1]
     northeast= [1, 1]
-    motion = [east, north, west, south, southwest, northwest, southeast, northeast]
+    motion = [north, east, south, west, northeast, southeast, southwest, northwest]
 
     return motion
 
 def oscillations_detection(previous_ids, ix, iy):
     previous_ids.append((ix, iy))
 
-    if (len(previous_ids) > OSCILLATIONS_DETECTION_LENGTH):
+    if (len(previous_ids) > navParam.getOSCILLATIONS_DETECTION_LENGTH()):
         previous_ids.popleft()
 
     # check if contains any duplicates by copying into a set
@@ -167,7 +163,7 @@ def potential_field_planning(start, goal, obstacles, resolution,ROBOT_RADIUS, to
             plt.plot(ix, iy, ".r")
             plt.pause(0.01)
 
-    print("Done")
+    print("Done") 
     setCurrentCoord(rx[-1], ry[-1])
     return rx, ry
 
@@ -177,7 +173,6 @@ def draw_heatmap(data):
 
 def setCurrentCoord(x, y):
     LAST_POSITION=(x, y)
-
 
 def getCurrentCoord():
     return (getCurrentCoord_X, getCurrentCoord_Y)
@@ -189,17 +184,17 @@ def getCurrentCoord_Y():
     return LAST_POSITION[1]
 
 def scale(coord):
-    return coord#*GRID_SIZE
+    return coord#*navParam.getGRID_SIZE()
 
 def getObstacles():
     f = open('mapData.json')
     listObstacles = json.load(f)
-    obstacles = [(0, 0),(DIMENSION[0], 0), (0, DIMENSION[1]), (DIMENSION[0], DIMENSION[1]),(DIMENSION[0]*0.5, 0), (0, DIMENSION[1]*0.5), (DIMENSION[0]*0.5, DIMENSION[1]*0.5)]
+    obstacles = [(0, 0),(navParam.getDIMENSION()[0], 0), (0, navParam.getDIMENSION()[1]), (navParam.getDIMENSION()[0], navParam.getDIMENSION()[1]),(navParam.getDIMENSION()[0]*0.5, 0), (0, navParam.getDIMENSION()[1]*0.5), (navParam.getDIMENSION()[0]*0.5, navParam.getDIMENSION()[1]*0.5)]
     for obst in listObstacles['obstacles']:
         obstacles.append((obst['x'], obst['y']))
     return obstacles
 
-def getLocation(type, spec):
+def getLocations(type, spec):
     f = open('mapData.json')
     listObject = json.load(f)
     x = listObject[type][spec]['x']
@@ -210,21 +205,22 @@ def getLocation(type, spec):
 def moveTo(start, goal):
 
     list, list = potential_field_planning(
-        start, goal, getObstacles(), GRID_SIZE, ROBOT_RADIUS, KP)
-
+        start, goal, getObstacles(), navParam.getGRID_SIZE(), ROBOT_RADIUS, navParam.getATRC_POTL_GAIN())
 
 def moveToCube(color, start):
 
     list, list = potential_field_planning(
-        start, (getLocation("cube", color)), getObstacles(), GRID_SIZE, ROBOT_RADIUS, KP)
+        start, (getLocations("cube", color)), getObstacles(), navParam.getGRID_SIZE(), ROBOT_RADIUS, navParam.getATRC_POTL_GAIN())
 
 def moveToGrid(name, start):
     
     list, list = potential_field_planning(
-        start, getLocation("grid", name), getObstacles(), GRID_SIZE, ROBOT_RADIUS, KP)
+        start, getLocations("grid", name), getObstacles(), navParam.getGRID_SIZE(), ROBOT_RADIUS, navParam.getATRC_POTL_GAIN())
 
 
 def main():
+
+    
     print("potential_field_planning start")
 
 
@@ -243,37 +239,37 @@ def main():
     # path generation
     moveToCube('red', start)
 
-    start = getLocation('cube', 'red')
+    start = getLocations('cube', 'red')
     moveToGrid('BL', start)
 
-    start = getLocation('grid', 'BL')
+    start = getLocations('grid', 'BL')
     moveToCube('green', start)
 
-    start = getLocation('cube', 'green')
+    start = getLocations('cube', 'green')
     moveToGrid('BM', start)
 
-    start = getLocation('grid', 'BM')
+    start = getLocations('grid', 'BM')
     moveToCube('blue', start)
 
-    start = getLocation('cube', 'blue')
+    start = getLocations('cube', 'blue')
     moveToGrid('BR', start)
 
-    start = getLocation('grid', 'BR')
+    start = getLocations('grid', 'BR')
     moveToCube('yellow', start)
 
-    start = getLocation('cube', 'yellow')
+    start = getLocations('cube', 'yellow')
     moveToGrid('ML', start)
 
-    start = getLocation('grid', 'ML')
+    start = getLocations('grid', 'ML')
     moveToCube('black', start)
 
-    start = getLocation('cube', 'black')
+    start = getLocations('cube', 'black')
     moveToGrid('MM', start)
 
-    start = getLocation('grid', 'MM')
+    start = getLocations('grid', 'MM')
     moveToCube('white', start)
 
-    start = getLocation('cube', 'white')
+    start = getLocations('cube', 'white')
     moveToGrid('ML', start)
 
     
