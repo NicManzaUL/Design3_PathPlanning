@@ -6,7 +6,7 @@ import json
 
 class NavParam:
     def __init__(self):
-        self.GRID_SIZE =1 # potential grid size [m]
+        self.GRID_SIZE =0.25 # potential grid size [m]
         self.DIMENSION = (50, 50)
         self.ATRC_POTL_GAIN = 2.5 # attractive potential gain
         self.RPLV_POTL_GAIN = 100 # repulsive potential gain
