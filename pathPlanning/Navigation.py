@@ -56,7 +56,7 @@ def moveToGrid(name, start):
         start, Mapper.getLocation("grid", name), Mapper.getObstacles(), GRID_SIZE, ROBOT_RADIUS, KP)
 
 
-def runScenario():
+def runScenario1():
     print("potential_field_planning start")
 
 
