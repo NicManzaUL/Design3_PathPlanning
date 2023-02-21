@@ -17,7 +17,7 @@ class PathPlanner:
     
     def get_motion_model(self):
     # dx, dy
-        scale = 2
+        scale = 5
         motion_dict = {
             (scale, 0)      :'0',
             (scale, scale)  :'45',
