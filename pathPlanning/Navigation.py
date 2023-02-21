@@ -76,38 +76,38 @@ def runScenario1():
     # path generation
     moveToCube('red', start)
 
-    start = Mapper.getLocation('cube', 'red')
-    moveToGrid('6', start)
+    #start = Mapper.getLocation('cube', 'red')
+    #moveToGrid('6', start)  
 
-    """start = Mapper.getLocation('grid', '6')
-    moveToCube('green', start)
+    #start = Mapper.getLocation('grid', '6')
+    #moveToCube('green', start)
 
-    start = Mapper.getLocation('cube', 'green')
-    moveToGrid('7', start)
-
+    #start = Mapper.getLocation('cube', 'green')
+    #moveToGrid('7', start)"""
+    
     start = Mapper.getLocation('grid', '7')
     moveToCube('blue', start)
 
-    start = Mapper.getLocation('cube', 'blue')
-    moveToGrid('8', start)
+    """start = Mapper.getLocation('cube', 'blue')
+    moveToGrid('8', start)"""
 
-    start = Mapper.getLocation('grid', '8')
-    moveToCube('yellow', start)
+    #start = Mapper.getLocation('grid', '8')
+    #moveToCube('yellow', start)
 
-    start = Mapper.getLocation('cube', 'yellow')
+    """start = Mapper.getLocation('cube', 'yellow')
     moveToGrid('3', start)
 
     start = Mapper.getLocation('grid', '3')
-    moveToCube('black', start)
+    moveToCube('black', start)"""
 
-    start = Mapper.getLocation('cube', 'black')
-    moveToGrid('4', start)
+    #start = Mapper.getLocation('cube', 'black')
+    #moveToGrid('4', start)
 
     start = Mapper.getLocation('grid', '4')
     moveToCube('white', start)
 
-    start = Mapper.getLocation('cube', 'white')
-    moveToGrid('5', start)"""
+    #start = Mapper.getLocation('cube', 'white')
+    #moveToGrid('5', start)
 
     
     if show_animation:

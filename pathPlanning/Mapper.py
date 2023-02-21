@@ -34,7 +34,7 @@ def getLocation(type, spec):
     listObject = json.load(f)
     x = listObject[type][spec]['x']
     y = listObject[type][spec]['y']
-    print("({},{})!".format(x, y))
+    #print("({},{})!".format(x, y))
     return (float(x), float(y))
 
 

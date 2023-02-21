@@ -112,30 +112,30 @@ class PathPlanner:
                 
             delta = int(current_angle)-int(last_angle)
             #print("current : {} last: {} delta: {}".format(int(current_angle), int(last_angle), delta))
-
+            
+            done=False
             if(delta==0):
                     direction = "..."
                     module_angle+=1
                     #print(direction)
 
             if(delta>0):
-                print("+ "*module_angle)
-                print("...")
+                print("{}-> {} ".format("+ "*module_angle, module_angle))
+                print("... ... ...") #straight foward
                 direction = "left"
                 if(int(current_angle)>(int(last_angle)+180)):
                     delta = int(current_angle)-(int(last_angle)+360)
                     direction = "right"
-                print(direction)
                 module_angle=1
+                done=True
 
-            if(delta<0):
-                print("+ "*module_angle)
-                print("...")
+            if((delta<0)&(done!=True)):
+                print("{}-> {} ".format("+ "*module_angle, module_angle))
+                print("... ... ...") #straight foward
                 direction = "right"
                 if((int(current_angle)+180)<int(last_angle)):
                     delta = (int(current_angle)+360)-int(last_angle)
                     direction = "left"
-                print(direction)
                 module_angle=1
             
             #print(direction)
@@ -151,10 +151,13 @@ class PathPlanner:
             d = np.hypot(goal_x - xp, goal_y - yp)
             rx.append(xp)
             ry.append(yp)
+            
             if(direction!='...'):
-                #print("Direction: {} degrees {} !".format(delta, direction))
+                print("turn {} degrees {} ".format(abs(delta), direction))
                 pass
             last_angle=current_angle
+
+
             if (self.oscillations_detection(previous_ids, ix, iy)):
                 print("Oscillation detected at ({},{})!".format(ix, iy))
                 break
@@ -163,6 +166,7 @@ class PathPlanner:
                 plt.plot(ix, iy, ".r")
                 plt.pause(0.01)
 
+        print("+ "*module_angle)
         print("Done")
         #setCurrentCoord(rx[-1], ry[-1])
         return rx, ry
