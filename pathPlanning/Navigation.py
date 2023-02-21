@@ -79,7 +79,7 @@ def runScenario1():
     start = Mapper.getLocation('cube', 'red')
     moveToGrid('6', start)
 
-    start = Mapper.getLocation('grid', '6')
+    """start = Mapper.getLocation('grid', '6')
     moveToCube('green', start)
 
     start = Mapper.getLocation('cube', 'green')
@@ -107,7 +107,7 @@ def runScenario1():
     moveToCube('white', start)
 
     start = Mapper.getLocation('cube', 'white')
-    moveToGrid('5', start)
+    moveToGrid('5', start)"""
 
     
     if show_animation:
