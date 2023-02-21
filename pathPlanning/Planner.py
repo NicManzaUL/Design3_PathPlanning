@@ -17,7 +17,7 @@ class PathPlanner:
     
     def get_motion_model(self):
     # dx, dy
-        scale = 5
+        scale = 2
         motion_dict = {
             (scale, 0)      :'0',
             (scale, scale)  :'45',
@@ -86,7 +86,7 @@ class PathPlanner:
         current_angle="0"
         last_angle=0
         module_angle=1
-        direction = "front"
+        direction = "none"
         delta=0
         print("RESET current&last angle: 0")
         while d >= resolution:
@@ -115,13 +115,13 @@ class PathPlanner:
             
             done=False
             if(delta==0):
-                    direction = "..."
+                    direction = "foward"
                     module_angle+=1
                     #print(direction)
 
             if(delta>0):
                 print("{}-> {} ".format("+ "*module_angle, module_angle))
-                print("... ... ...") #straight foward
+                print("... ... ... ... ...") #straight foward
                 direction = "left"
                 if(int(current_angle)>(int(last_angle)+180)):
                     delta = int(current_angle)-(int(last_angle)+360)
@@ -131,7 +131,7 @@ class PathPlanner:
 
             if((delta<0)&(done!=True)):
                 print("{}-> {} ".format("+ "*module_angle, module_angle))
-                print("... ... ...") #straight foward
+                print("... ... ... ... ...") #straight foward
                 direction = "right"
                 if((int(current_angle)+180)<int(last_angle)):
                     delta = (int(current_angle)+360)-int(last_angle)
@@ -152,7 +152,7 @@ class PathPlanner:
             rx.append(xp)
             ry.append(yp)
             
-            if(direction!='...'):
+            if(direction!='foward'):
                 print("turn {} degrees {} ".format(abs(delta), direction))
                 pass
             last_angle=current_angle
@@ -166,7 +166,7 @@ class PathPlanner:
                 plt.plot(ix, iy, ".r")
                 plt.pause(0.01)
 
-        print("+ "*module_angle)
+        print("{}-> {} ".format("+ "*module_angle, module_angle))
         print("Done")
         #setCurrentCoord(rx[-1], ry[-1])
         return rx, ry

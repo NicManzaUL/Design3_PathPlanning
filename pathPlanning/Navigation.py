@@ -94,17 +94,17 @@ def runScenario1():
     #start = Mapper.getLocation('grid', '8')
     #moveToCube('yellow', start)
 
-    """start = Mapper.getLocation('cube', 'yellow')
-    moveToGrid('3', start)
+    #start = Mapper.getLocation('cube', 'yellow')
+    #moveToGrid('3', start)
 
     start = Mapper.getLocation('grid', '3')
-    moveToCube('black', start)"""
+    moveToCube('black', start)
 
     #start = Mapper.getLocation('cube', 'black')
     #moveToGrid('4', start)
 
-    start = Mapper.getLocation('grid', '4')
-    moveToCube('white', start)
+    #start = Mapper.getLocation('grid', '4')
+    #moveToCube('white', start)
 
     #start = Mapper.getLocation('cube', 'white')
     #moveToGrid('5', start)
