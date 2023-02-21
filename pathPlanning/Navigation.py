@@ -6,6 +6,8 @@ import os
 from pathPlanning.NavUtil import NavParam
 from pathPlanning.Planner import PathPlanner
 import pathPlanning.Mapper as Mapper
+from pathPlanning import GoalSequencer
+from flag_utils import flagUtils
 
 pathPlanner = PathPlanner()
 navParam = NavParam()
@@ -75,38 +77,66 @@ def runScenario1():
     moveToCube('red', start)
 
     start = Mapper.getLocation('cube', 'red')
-    moveToGrid('BL', start)
+    moveToGrid('6', start)
 
-    start = Mapper.getLocation('grid', 'BL')
+    start = Mapper.getLocation('grid', '6')
     moveToCube('green', start)
 
     start = Mapper.getLocation('cube', 'green')
-    moveToGrid('BM', start)
+    moveToGrid('7', start)
 
-    start = Mapper.getLocation('grid', 'BM')
+    start = Mapper.getLocation('grid', '7')
     moveToCube('blue', start)
 
     start = Mapper.getLocation('cube', 'blue')
-    moveToGrid('BR', start)
+    moveToGrid('8', start)
 
-    start = Mapper.getLocation('grid', 'BR')
+    start = Mapper.getLocation('grid', '8')
     moveToCube('yellow', start)
 
     start = Mapper.getLocation('cube', 'yellow')
-    moveToGrid('ML', start)
+    moveToGrid('3', start)
 
-    start = Mapper.getLocation('grid', 'ML')
+    start = Mapper.getLocation('grid', '3')
     moveToCube('black', start)
 
     start = Mapper.getLocation('cube', 'black')
-    moveToGrid('MM', start)
+    moveToGrid('4', start)
 
-    start = Mapper.getLocation('grid', 'MM')
+    start = Mapper.getLocation('grid', '4')
     moveToCube('white', start)
 
     start = Mapper.getLocation('cube', 'white')
-    moveToGrid('ML', start)
+    moveToGrid('5', start)
 
+    
+    if show_animation:
+        plt.show()
+
+def runScenario2():
+    print("potential_field_planning start")
+
+    start = (scale(2), scale(5))
+    #goal = (scale(30), scale(30))
+
+    f = open('./pathPlanning/mapData.json')
+    listObstacles = json.load(f)
+    # [(x coord, y coord, size)]
+
+    if show_animation:
+        plt.grid(True)
+        plt.axis("equal")
+
+    orders = GoalSequencer.produceSequence(
+        flagUtils.countryToFlag(flagUtils.hexToCountry('1'))
+    )
+
+    for order in orders:
+        moveToCube(order[0], start)
+        start = Mapper.getLocation('cube', order[0])
+        print(f"getting {order[0]} cube")
+        moveToGrid(str(order[1]), start)
+        start = Mapper.getLocation('grid', str(order[1]))
     
     if show_animation:
         plt.show()
