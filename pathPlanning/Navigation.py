@@ -105,7 +105,7 @@ def runScenario1():
     moveToCube('white', start)
 
     start = Mapper.getLocation('cube', 'white')
-    moveToGrid('ML', start)
+    moveToGrid('ML', start) 
 
     
     if show_animation:

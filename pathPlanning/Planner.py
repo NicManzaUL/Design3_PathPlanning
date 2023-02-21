@@ -17,7 +17,7 @@ class PathPlanner:
     
     def get_motion_model(self):
     # dx, dy
-        scale = 5
+        scale = 2
         motion_dict = {
             (scale, 0)      :'0',
             (scale, scale)  :'45',
@@ -83,11 +83,16 @@ class PathPlanner:
         motions = self.get_motion_model()
         previous_ids = deque()
 
+        current_angle="0"
+        last_angle=0
+        module_angle=1
+        direction = "front"
+        delta=0
+        print("RESET current&last angle: 0")
         while d >= resolution:
             minp = float("inf")
             minix, miniy = -1, -1
-            current_angle="0"
-            print("RESET current&last angle: 0")
+ 
             for i, (motion, angle) in enumerate(motions.items()):
                 inx = int(ix + motion[0])
                 iny = int(iy + motion[1])
@@ -98,33 +103,45 @@ class PathPlanner:
                 else:
                     p = potential_map[inx][iny]
                 
-                last_angle=current_angle
+
                 if p < minp:
                     minp = p
                     minix = inx
                     miniy = iny
                     current_angle=angle
                 
-                delta = int(current_angle)-int(last_angle)
-                print("current : {} last: {} delta: {}".format(int(current_angle), int(last_angle), delta))
+            delta = int(current_angle)-int(last_angle)
+            #print("current : {} last: {} delta: {}".format(int(current_angle), int(last_angle), delta))
 
-                if(delta==0):
-                    direction = "front"
-                if(delta>0):
-                    direction = "left"
-                    if(int(current_angle)>(int(last_angle)+180)):
-                         delta = int(current_angle)-(int(last_angle)+360)
-                         direction = "right"
+            if(delta==0):
+                    direction = "..."
+                    module_angle+=1
+                    #print(direction)
 
-                if(delta<0):
+            if(delta>0):
+                print("+ "*module_angle)
+                print("...")
+                direction = "left"
+                if(int(current_angle)>(int(last_angle)+180)):
+                    delta = int(current_angle)-(int(last_angle)+360)
                     direction = "right"
-                    if((int(current_angle)+180)<int(last_angle)):
-                         delta = (int(current_angle)+360)-int(last_angle)
-                         direction = "left"
+                print(direction)
+                module_angle=1
 
-                print("Direction: {} degrees {} !".format(delta, direction))
+            if(delta<0):
+                print("+ "*module_angle)
+                print("...")
+                direction = "right"
+                if((int(current_angle)+180)<int(last_angle)):
+                    delta = (int(current_angle)+360)-int(last_angle)
+                    direction = "left"
+                print(direction)
+                module_angle=1
+            
+            #print(direction)
+
                 #print(minix, miniy)
-                print("... ... ...")
+                #print("... ... ...")
             
             ix = minix
             iy = miniy
@@ -134,7 +151,10 @@ class PathPlanner:
             d = np.hypot(goal_x - xp, goal_y - yp)
             rx.append(xp)
             ry.append(yp)
-
+            if(direction!='...'):
+                #print("Direction: {} degrees {} !".format(delta, direction))
+                pass
+            last_angle=current_angle
             if (self.oscillations_detection(previous_ids, ix, iy)):
                 print("Oscillation detected at ({},{})!".format(ix, iy))
                 break
